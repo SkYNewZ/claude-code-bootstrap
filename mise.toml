@@ -1,0 +1,25 @@
+# Chemin alternatif à Homebrew : Mise (https://github.com/jdx/mise)
+#
+#   mise install            # installe les outils CLI ci-dessous
+#   mise run bootstrap      # config + plugins + MCP (réutilise setup.sh)
+#
+# rtk n'est pas dans le registre Mise : il est géré par le bootstrap
+# (Homebrew core si dispo, sinon `cargo install rtk`, sinon documenté).
+
+[tools]
+node = "lts"
+bun = "latest"
+ripgrep = "latest"
+fd = "latest"
+jq = "latest"
+yq = "latest"
+gh = "latest"
+glab = "latest"
+
+[tasks.bootstrap]
+description = "Bootstrap Claude Code (config + plugins + MCP), outils fournis par Mise"
+run = "./setup.sh --skip-deps"
+
+[tasks.bootstrap-no-plugins]
+description = "Bootstrap sans installer les plugins"
+run = "./setup.sh --skip-deps --no-plugins"
