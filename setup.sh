@@ -38,7 +38,6 @@ EOF
 while [ $# -gt 0 ]; do
   case "$1" in
     --language)              LANGUAGE="${2:?--language requiert une valeur}"; shift 2 ;;
-    --language=*)            LANGUAGE="${1#*=}"; shift ;;
     --statusLine)            STATUSLINE=true; shift ;;
     --no-statusLine)         STATUSLINE=false; shift ;;
     --no-plugins)            INSTALL_PLUGINS=false; shift ;;
