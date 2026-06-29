@@ -39,8 +39,8 @@ while [ $# -gt 0 ]; do
   case "$1" in
     --language)              LANGUAGE="${2:?--language requiert une valeur}"; shift 2 ;;
     --language=*)            LANGUAGE="${1#*=}"; shift ;;
-    --statusLine|--status-line)       STATUSLINE=true; shift ;;
-    --no-statusLine|--no-status-line) STATUSLINE=false; shift ;;
+    --statusLine)            STATUSLINE=true; shift ;;
+    --no-statusLine)         STATUSLINE=false; shift ;;
     --no-plugins)            INSTALL_PLUGINS=false; shift ;;
     --skip-deps)             SKIP_DEPS=true; shift ;;
     -h|--help)               usage; exit 0 ;;
@@ -98,9 +98,10 @@ install_deps() {
   fi
   step "Installation des outils CLI"
   if have brew; then
-    # ripgrep fd jq yq gh glab rtk → tous dans Homebrew core
-    for pkg in ripgrep fd jq yq gh glab rtk; do
-      if brew list --formula "$pkg" >/dev/null 2>&1; then
+    # ripgrep fd jq yq gh glab → Homebrew core (rtk : géré par ensure_rtk)
+    local installed; installed="$(brew list --formula 2>/dev/null || true)"
+    for pkg in ripgrep fd jq yq gh glab; do
+      if printf '%s\n' "$installed" | grep -qx "$pkg"; then
         ok "$pkg déjà installé"
       else
         brew install "$pkg" && ok "$pkg installé" || warn "échec installation $pkg"
@@ -164,16 +165,15 @@ write_config() {
   install_file "$TEMPLATES/CLAUDE.md"               "$CLAUDE_DIR/CLAUDE.md"
   install_file "$TEMPLATES/rules/context7.md"       "$CLAUDE_DIR/rules/context7.md"
 
-  # settings.json généré depuis le template avec language + statusLine + hook rtk conditionnels.
+  # settings.json : template + language/statusLine/hook conditionnels en une passe jq.
+  local rtk_present=true
+  have rtk || { rtk_present=false; warn "rtk absent → hook RTK retiré de settings.json"; }
   local tmp; tmp="$(mktemp)"
-  jq --arg lang "$LANGUAGE" '.language = $lang' "$TEMPLATES/settings.json" > "$tmp"
-  if ! $STATUSLINE; then
-    jq 'del(.statusLine)' "$tmp" > "$tmp.2" && mv "$tmp.2" "$tmp"
-  fi
-  if ! have rtk; then
-    jq 'del(.hooks)' "$tmp" > "$tmp.2" && mv "$tmp.2" "$tmp"
-    warn "rtk absent → hook RTK retiré de settings.json"
-  fi
+  jq --arg lang "$LANGUAGE" --argjson sl "$STATUSLINE" --argjson rtk "$rtk_present" \
+     '.language = $lang
+      | (if $sl  then . else del(.statusLine) end)
+      | (if $rtk then . else del(.hooks)      end)' \
+     "$TEMPLATES/settings.json" > "$tmp"
   install_file "$tmp" "$CLAUDE_DIR/settings.json"
   rm -f "$tmp"
 }
@@ -230,7 +230,7 @@ install_plugins() {
 install_mcp() {
   if ! have claude; then warn "claude absent → MCP context7 sauté"; return; fi
   step "MCP context7 (HTTP, keyless)"
-  if claude mcp list 2>/dev/null | grep -q "context7"; then
+  if claude mcp get context7 >/dev/null 2>&1; then
     ok "context7 déjà configuré"
   else
     claude mcp add --transport http context7 https://mcp.context7.com/mcp --scope user >/dev/null 2>&1 \

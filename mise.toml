@@ -7,7 +7,7 @@
 # (Homebrew core si dispo, sinon `cargo install rtk`, sinon documenté).
 
 [tools]
-node = "lts"
+node = "lts"   # requis par Claude Code et les plugins/MCP qui passent par npx
 bun = "latest"
 ripgrep = "latest"
 fd = "latest"
