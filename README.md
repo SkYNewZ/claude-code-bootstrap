@@ -45,6 +45,7 @@ mise run bootstrap-no-plugins                         # idem via Mise
 
 - **Outils CLI** : `ripgrep` `fd` `jq` `yq` `gh` `glab` `bun` + **rtk** (Rust Token Killer, 60-90 % d'économie de tokens)
 - **Config `~/.claude/`** : `settings.json` (hook RTK, permissions, status line, effort `xhigh`, langue), `CLAUDE.md`, `RTK.md`, `conventional-commits.md`, `rules/context7.md`
+- **Skills** (déposés dans `~/.claude/skills/`) : `llm-council` ([source](https://github.com/aiwithremy/claude-skills-llm-council)), `graphify`, `markitdown`, `playwright-cli`, `writing-adrs`, `prd`
 - **Plugins** (sauf `--no-plugins`) :
   - `superpowers`, `frontend-design`, `claude-md-management` (marketplace officielle)
   - `claude-mem`, `ui-ux-pro-max`, `understand-anything`, `ponytail`

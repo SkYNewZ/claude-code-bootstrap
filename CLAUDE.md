@@ -60,6 +60,9 @@ finit dans le PATH.
   short-name). `warp` est délibérément exclu.
 - **Ajouter un fichier de config global** : le déposer dans `templates/` + ajouter
   un appel `install_file` dans `write_config()`.
+- **Ajouter un skill** : déposer son dossier dans `templates/skills/<nom>/` + ajouter
+  `<nom>` au tableau `SKILLS`. `install_skill()` déploie chaque fichier via
+  `install_file` (idempotent, sous-dossiers `references/` inclus).
 - `set -euo pipefail` est actif : tout pipeline qui peut échouer « normalement »
   doit être gardé (`... || true`), comme c'est déjà fait pour les `claude plugin list`.
 

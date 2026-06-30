@@ -74,6 +74,18 @@ install_file() {
   ok "$(basename "$dst") installé"
 }
 
+# Déploie un skill (dossier multi-fichiers) via install_file — idempotent.
+install_skill() {
+  local name="$1"
+  local src="$TEMPLATES/skills/$name" f dst
+  if [ ! -d "$src" ]; then warn "skill $name introuvable dans templates/skills/"; return; fi
+  while IFS= read -r f; do
+    dst="$CLAUDE_DIR/skills/$name/${f#"$src/"}"
+    mkdir -p "$(dirname "$dst")"
+    install_file "$f" "$dst"
+  done < <(find "$src" -type f ! -name .DS_Store)
+}
+
 # Ajoute un répertoire au PATH dans le rc shell, une seule fois.
 ensure_path() {
   local dir="$1" rc
@@ -155,6 +167,9 @@ ensure_claude() {
 }
 
 # --- 3. Fichiers de config -------------------------------------------------
+# skills personnels (dossiers vendorés dans templates/skills/, déployés dans ~/.claude/skills/)
+SKILLS=(llm-council graphify markitdown playwright-cli writing-adrs prd)
+
 write_config() {
   step "Écriture de la config Claude ($CLAUDE_DIR)"
   mkdir -p "$CLAUDE_DIR/rules"
@@ -163,6 +178,9 @@ write_config() {
   install_file "$TEMPLATES/conventional-commits.md" "$CLAUDE_DIR/conventional-commits.md"
   install_file "$TEMPLATES/CLAUDE.md"               "$CLAUDE_DIR/CLAUDE.md"
   install_file "$TEMPLATES/rules/context7.md"       "$CLAUDE_DIR/rules/context7.md"
+
+  local skill
+  for skill in "${SKILLS[@]}"; do install_skill "$skill"; done
 
   # settings.json : template + language/statusLine/hook conditionnels en une passe jq.
   local rtk_present=true
